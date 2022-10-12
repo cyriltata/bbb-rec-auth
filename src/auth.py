@@ -152,6 +152,11 @@ class GLAuth:
   def authenticated(self, target):
     auth_cookie = self.config.os('HTTP_COOKIE')
     target = self.config.os('HTTP_X_ORIGINAL_URI', target)
+    ref_meeting = GLAuthBBBMeeting(self.config, target, self.recording_path)
+
+    if ref_meeting.id is None:
+      # We are not in the context of a recording so authenticate request
+      return True
 
     if auth_cookie:
       cookie = cookies.SimpleCookie()
@@ -160,7 +165,6 @@ class GLAuth:
         cookie_value = base64.b64decode(cookie[self.auth_cookie_name].value).decode('utf-8')
         log(cookie_value)
         parts = cookie_value.split(':')
-        ref_meeting = GLAuthBBBMeeting(self.config, target, self.recording_path)
         cookie_meeting = GLAuthBBBMeeting(self.config, parts[-2], self.recording_path)
 
         if ref_meeting.id and cookie_meeting.id and ref_meeting.id != cookie_meeting.id:

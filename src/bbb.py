@@ -38,8 +38,7 @@ class GLAuthBBBMeeting:
         try:
             thumb = t.findall(url)
             if thumb:
-                logfile.write('Thumbnail found\n')
-                return False
+                return None
             else:
                 meetingid = r.findall(url)[0]
                 return meetingid
