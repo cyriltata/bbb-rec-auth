@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv=Content-Type content="text/html;charset=UTF-8">
+    <title>Recording Authentication</title>
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.4.1/css/all.css" integrity="sha384-5sAR7xN1Nv6T6+dT2mhtzEpVJvfS3NScPQTrOxhwjIuvcA67KV2R5Jz6kr4abQsz" crossorigin="anonymous">
+    <link href="/rec-auth/forms/styles.css" rel="stylesheet">
+  </head>
+  <body>
+    <div class="main-block">
+      <h1>Room access code</h1>
+      <form action="" method="post">
+        <hr>
+        <label id="icon" for="access_code"><i class="fas fa-th"></i></label>
+        <input type="text" name="access_code" id="access_code" placeholder="Access Code" required/>
+
+        <input type="hidden" name="target" value="TARGET">
+        
+        <div class="btn-block">
+          <button type="submit">Send</button>
+        </div>
+      </form>
+    </div>
+  </body>
+</html>

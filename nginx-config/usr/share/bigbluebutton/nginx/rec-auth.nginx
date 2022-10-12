@@ -1,0 +1,49 @@
+# set $rec_auth_root value to where the rec-auth application resides. It is important to get it right.
+# Also check the repository on how the other bigbluebutton nginx configuration should be modified
+
+set $rec_auth_root "/home/developer/rec-auth";
+
+location /rec-auth/authenticate.py {
+    gzip off;
+    root   $rec_auth_root;
+    fastcgi_pass  unix:/var/run/fcgiwrap.socket;
+    include /etc/nginx/fastcgi_params;
+    fastcgi_param DOCUMENT_ROOT    $rec_auth_root;
+    fastcgi_param SCRIPT_FILENAME  $rec_auth_root/authenticate.py;
+}
+
+location /auth {
+        internal;
+        proxy_pass              https://localhost/rec-auth/authenticate.py;
+        proxy_pass_request_body off;
+        proxy_set_header        Content-Length "";
+        proxy_set_header        X-Original-URI $request_uri;
+        proxy_set_header        X-Cookie "$http_cookie";
+        proxy_set_header        Host            $host;
+        proxy_set_header        X-Real-IP       $remote_addr;
+        proxy_set_header        X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header        X-CookieName "GLAuth_GEMI";
+        proxy_set_header        Cookie GLAuth_GEMI=$cookie_GLAuth_GEMI;
+}
+
+location /rec-auth {
+    gzip off;
+    root   $rec_auth_root;
+    fastcgi_pass  unix:/var/run/fcgiwrap.socket;
+    include /etc/nginx/fastcgi_params;
+    fastcgi_param DOCUMENT_ROOT   $rec_auth_root;
+    fastcgi_param SCRIPT_ACTION   login;
+    fastcgi_param SCRIPT_FILENAME $rec_auth_root/authenticate.py;
+
+}
+
+location /rec-auth/forms/styles.css {
+    gzip off;
+    root  $rec_auth_root;
+    try_files /forms/styles.css /playback/presentation/2.3/index.html;
+}
+
+
+location @recerror401 {
+    return 302 /rec-auth$request_uri;
+}
