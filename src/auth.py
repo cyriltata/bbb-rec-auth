@@ -105,33 +105,33 @@ class GLAuth:
     # Perform authentication based on the above explained scenario
     auth_string = None
     if self.is_public_meeting(ref_target):
-      auth_string = 'PUBAUTH:public' + ':' + target
+      auth_string = 'PUBAUTH:public'
     elif meeting.has_access_code() and meeting.get_meeting_status() == GLAuthBBBMeeting.ACCESS_PUBLIC:
       # authenticate only with access code only
       if (self.authenticate_code(form, meeting)):
-        auth_string = 'CODEAUTH:' + access_code + ':' + target
+        auth_string = 'CODEAUTH:' + access_code
 
     elif meeting.has_access_code() and meeting.get_meeting_status() == GLAuthBBBMeeting.ACCESS_AUTH:
       # authenticate only with access code only
       if (self.authenticate_code(form, meeting)):
-        auth_string = 'CODEAUTH:' + access_code + ':' + target
+        auth_string = 'CODEAUTH:' + access_code
 
     elif not meeting.has_access_code() and meeting.get_meeting_status() == GLAuthBBBMeeting.ACCESS_AUTH:
       # authenticate only with login only
       if (self.authenticate_ldap(form, meeting, False)):
-        auth_string = 'LDAPAUTH:' + user + ':'  + target
+        auth_string = 'LDAPAUTH:' + user
 
     else:
       # authenticate with login and permission to access the room
       if (self.authenticate_ldap(form, meeting, True)):
-        auth_string = 'LDAPAUTH:' + user + ':' + target
+        auth_string = 'LDAPAUTH:' + user
 
     if not auth_string:
       return False
 
-    auth_string = auth_string + ':' + meeting.get_meeting_status()
+    auth_string = auth_string + ':' + target + ':' + meeting.get_meeting_status()
 
-    return base64.b64encode(self.ensure_bytes(auth_string)).decode()
+    return self.encrypt(auth_string)
   
   def authenticate_code(self, form, meeting):
     access_code = meeting.get_access_code()
@@ -162,8 +162,7 @@ class GLAuth:
       cookie = cookies.SimpleCookie()
       cookie.load(auth_cookie)
       if self.auth_cookie_name in cookie and cookie[self.auth_cookie_name].value:
-        cookie_value = base64.b64decode(cookie[self.auth_cookie_name].value).decode('utf-8')
-        log(cookie_value)
+        cookie_value = self.decrypt(cookie[self.auth_cookie_name].value)
         parts = cookie_value.split(':')
         cookie_meeting = GLAuthBBBMeeting(self.config, parts[-2], self.recording_path)
 
@@ -176,17 +175,6 @@ class GLAuth:
         return True
 
     return False
-  
-  def validate_cookie(self, cookie, target):
-    if not cookie:
-      return False
-    
-    cookie = base64.b64decode(cookie).decode('utf-8')
-    parts = cookie.split(':')
-    return parts[-1] == target
-
-
-    return True
 
   
   def is_public_meeting(self, target):
@@ -228,5 +216,11 @@ class GLAuth:
 
   def ensure_bytes(self, data):
     return data if sys.version_info.major == 2 else data.encode("utf-8")
+  
+  def encrypt(self, data):
+    return base64.b64encode(self.ensure_bytes(data)).decode()
+
+  def decrypt(self, data):
+    return base64.b64decode(data).decode('utf-8')
     
 
