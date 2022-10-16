@@ -91,28 +91,21 @@ class GLAuthBBBMeeting:
         cur = self.db_conn.cursor()
         
         cur.execute("SELECT id FROM rooms WHERE bbb_id = %s;", (bbbid,))
-        res = cur.fetchall()
+        rooms = cur.fetchall()
 
+        cur.execute("SELECT id FROM users WHERE email = %s;", (user,))
+        users = cur.fetchall()
+
+        if not rooms or not users:
+            return False
+
+        cur.execute("SELECT user_id FROM shared_accesses WHERE room_id = %s and user_id = %s;", (rooms[0][0], users[0][0]))
+        res = cur.fetchall()
+        
         if not res:
             return False
 
-        cur.execute("SELECT user_id FROM shared_accesses WHERE room_id = %s;", (res[0][0],))
-        res = cur.fetchall()
-        
-        if not res:
-            return False
-        
-        for uid in res:
-            cur.execute("SELECT email FROM users WHERE id = %s;", (uid[0],))
-            tmp_res = cur.fetchall()
-
-            if not tmp_res:
-                return False
-            
-            if tmp_res[0][0] == user:
-                return True
-        
-        return False
+        return True
 
     def user_can_access(self, user):
         return self.check_owner(user) or self.check_shared(user)
