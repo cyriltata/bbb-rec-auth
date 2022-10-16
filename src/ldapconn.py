@@ -40,6 +40,10 @@ class GLAuthLdap:
         bindDN = result[0][0]
         try:
             self.conn.simple_bind_s(bindDN, pwd)
-            return True
+            return {
+                "dn": bindDN,
+                "email": result[0][1]['mail'][0].decode(),
+                "uid": result[0][1]['uid'][0].decode()
+            }
         except:
             return False

@@ -72,13 +72,13 @@ class GLAuthBBBMeeting:
             return False
         
         # get mailaddr of owner
-        cur.execute("SELECT username FROM users WHERE id = %s;", (res[0]['user_id'],))
+        cur.execute("SELECT email FROM users WHERE id = %s;", (res[0]['user_id'],))
         res = cur.fetchall()
         
         if not res:
             return False
         
-        if res[0]['username'] == user:
+        if res[0]['email'] == user:
             return True
         
         return False
@@ -103,7 +103,7 @@ class GLAuthBBBMeeting:
             return False
         
         for uid in res:
-            cur.execute("SELECT username FROM users WHERE id = %s;", (uid[0],))
+            cur.execute("SELECT email FROM users WHERE id = %s;", (uid[0],))
             tmp_res = cur.fetchall()
 
             if not tmp_res:

@@ -9,6 +9,7 @@ from src.bbb import GLAuthBBBMeeting
 from src.ldapconn import GLAuthLdap
 
 from src.logger import log
+from cryptography.fernet import Fernet
 
 
 
@@ -35,6 +36,7 @@ class GLAuth:
   def __init__(self, env_file = '.env', recording_path = '/var/bigbluebutton/published/presentation/'):
     self.config = GLAuthConfig(env_file)
     self.recording_path = recording_path
+    self.encrypt_key = self.get_encrypt_key()
   
   def do_auth(self):
     form = cgi.FieldStorage()
@@ -141,12 +143,13 @@ class GLAuth:
     ldap = GLAuthLdap(self.config)
 
     ldap_authenticated = ldap.authenticate(form.getvalue('username'), form.getvalue('password'))
+
     if not ldap_authenticated:
       return False
     elif ldap_authenticated and not with_permission:
       return True
 
-    return ldap_authenticated and meeting.user_can_access(form.getvalue('username'));
+    return ldap_authenticated and meeting.user_can_access(ldap_authenticated['email']);
 
   #@TODO Do proper authentication using server files for cookie
   def authenticated(self, target):
@@ -214,13 +217,19 @@ class GLAuth:
       'Content-type': 'text/html',
     })
 
-  def ensure_bytes(self, data):
-    return data if sys.version_info.major == 2 else data.encode("utf-8")
-  
+  def get_encrypt_key(self):
+    #changing bigbluebutton secret renders all auth cookies invalid
+    _32_bytes = self.config.env('BIGBLUEBUTTON_SECRET')[0:32]
+    return base64.urlsafe_b64encode(_32_bytes.encode('utf-8'))
+
   def encrypt(self, data):
-    return base64.b64encode(self.ensure_bytes(data)).decode()
+    #return base64.b64encode(data.encode("utf-8")).decode()
+    fernet = Fernet(self.encrypt_key)
+    return fernet.encrypt(data.encode("utf-8")).decode('utf-8')
 
   def decrypt(self, data):
-    return base64.b64decode(data).decode('utf-8')
+    #return base64.b64decode(data).decode('utf-8')
+    fernet = Fernet(self.encrypt_key)
+    return fernet.decrypt(data.encode('utf-8')).decode('utf-8')
     
 

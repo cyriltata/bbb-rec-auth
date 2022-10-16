@@ -51,7 +51,7 @@ The greenlight integration is available at: https://github.com/cyriltata/greenli
 
 8. Install the required python packages:
 
-`pip3 install python-ldap pathlib python-dotenv`
+`pip3 install python-ldap pathlib python-dotenv cryptography`
 
 
 9. Create a .env file in the root of the directory cloned in step 3 with the following configuration (change values accordingly).
