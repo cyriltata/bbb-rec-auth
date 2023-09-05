@@ -1,9 +1,9 @@
 # set $rec_auth_root value to where the rec-auth application resides. It is important to get it right.
 # Also check the repository on how the other bigbluebutton nginx configuration should be modified
 
-set $rec_auth_root "/home/developer/rec-auth";
+set $rec_auth_root "/usr/share/bbb-rec-auth";
 
-location /rec-auth/authenticate.py {
+location /bbb-rec-auth/authenticate.py {
     gzip off;
     root   $rec_auth_root;
     fastcgi_pass  unix:/var/run/fcgiwrap.socket;
@@ -12,9 +12,9 @@ location /rec-auth/authenticate.py {
     fastcgi_param SCRIPT_FILENAME  $rec_auth_root/authenticate.py;
 }
 
-location /auth {
+location /brauth {
         internal;
-        proxy_pass              https://localhost/rec-auth/authenticate.py;
+        proxy_pass              https://localhost/bbb-rec-auth/authenticate.py;
         proxy_pass_request_body off;
         proxy_set_header        Content-Length "";
         proxy_set_header        X-Original-URI $request_uri;
@@ -26,7 +26,7 @@ location /auth {
         proxy_set_header        Cookie GLAuth_GEMI=$cookie_GLAuth_GEMI;
 }
 
-location /rec-auth {
+location /bbb-rec-auth {
     gzip off;
     root   $rec_auth_root;
     fastcgi_pass  unix:/var/run/fcgiwrap.socket;
@@ -37,7 +37,7 @@ location /rec-auth {
 
 }
 
-location /rec-auth/forms/styles.css {
+location /bbb-rec-auth/forms/styles.css {
     gzip off;
     root  $rec_auth_root;
     try_files /forms/styles.css /playback/presentation/2.3/index.html;
@@ -45,5 +45,5 @@ location /rec-auth/forms/styles.css {
 
 
 location @recerror401 {
-    return 302 /rec-auth$request_uri;
+    return 302 /bbb-rec-auth$request_uri;
 }
