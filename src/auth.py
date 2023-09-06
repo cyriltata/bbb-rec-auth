@@ -41,18 +41,17 @@ class GLAuth:
   def do_auth(self):
     form = cgi.FieldStorage()
     target = form.getvalue('target',  self.config.os('HTTP_X_ORIGINAL_URI', self.config.os('REQUEST_URI')))
-    target = target.replace('/rec-auth', '')
+    target = target.replace('/bbb-rec-auth', '')
 
     if self.authenticated(target):
       self.response_ok()
     elif (self.config.os('SCRIPT_ACTION') == 'login'):
       self.login(form, target)
     else:
-      log("SEND unauthorized " + target)
+      log("SEND unauthorized == " + target)
       self.unauthorized(target);
 
   def login(self, form, target):
-
     if self.config.os('REQUEST_METHOD') == 'POST' or self.is_public_meeting(target):
       target = form.getvalue('target', target)
       authenticated_cookie = self.authenticate(form, target);
@@ -198,10 +197,10 @@ class GLAuth:
 
   def response(self, code, content = None, headers = {}):
 
-    response = "HTTP/1.0 "+ str(code) + "\n"
+    response = "HTTP/1.1 "+ str(code) + "\r\n"
     for h in headers:
       if (h == 'Status'):
-        response += h + ": " + headers[h] + "\n"
+        response += h + ": " + headers[h] + "\r\n"
       else:
         response += h + ": " + headers[h] + "\r\n"
 

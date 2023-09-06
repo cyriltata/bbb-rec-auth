@@ -27,7 +27,7 @@ class GLAuthBBBMeeting:
 
         self.recording_path = recording_path
         self.id = self.parse_url(self.uri)
-        self.db_conn = psycopg2.connect("dbname="+self.config.env('DB_NAME')+" user="+self.config.env('DB_USERNAME')+" password="+self.config.env('DB_PASSWORD')+" host=localhost")
+        self.db_conn = psycopg2.connect("dbname="+self.config.env('DB_NAME')+" user="+self.config.env('DB_USERNAME')+" password="+self.config.env('DB_PASSWORD')+" host="+self.config.env('DB_HOST'))
 
         #if not self.id:
         #    raise Exception("Meeting ID Could not be found from URL: " + uri)
@@ -90,7 +90,7 @@ class GLAuthBBBMeeting:
             return False
         cur = self.db_conn.cursor()
         
-        cur.execute("SELECT id FROM rooms WHERE bbb_id = %s;", (bbbid,))
+        cur.execute("SELECT id FROM rooms WHERE meeting_id = %s;", (bbbid,))
         rooms = cur.fetchall()
 
         cur.execute("SELECT id FROM users WHERE email = %s;", (user,))
@@ -142,14 +142,16 @@ class GLAuthBBBMeeting:
         return self.ACCESS_PRIVATE
 
     def has_access_code(self):
+        return None
+        # code to executed until confirmed we still need access code
         bbbid = self.get_bbbid()
         if not bbbid:
             raise Exception("Unable to check for access code")
-    
+        log(bbbid)
         cur = self.db_conn.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
         
         # Get owner of room
-        cur.execute("SELECT access_code FROM rooms WHERE bbb_id = %s;", (bbbid,))
+        cur.execute("SELECT access_code FROM rooms WHERE meeting_id = %s;", (bbbid,))
         res = cur.fetchall()
         if not res:
             return None

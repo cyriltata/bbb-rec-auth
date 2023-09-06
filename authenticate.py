@@ -13,6 +13,7 @@ if not dotenv_path.is_file():
 load_dotenv(dotenv_path=dotenv_path)
 
 envfile = os.getenv('GL_ENV_FILE', '.env')
+
 recording_path = os.getenv('BBB_RECORDING_PATH', '/var/bigbluebutton/published/presentation')
 
 if not Path(envfile).is_file():
