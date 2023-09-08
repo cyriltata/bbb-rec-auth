@@ -17,12 +17,12 @@ rendering the recording inaccessible.
 
 ## Access Logic
 
-Access Logic:
-- If the recording is "public" and the room has no access code then no auth required
-- If the recording is "public" and room has an access code then ask for access code
-- If the recording is "unlisted" and room has an access code the ask for access code
-- If the recording is "unlisted" and room has no access code then authenticate with ldap credentials
-- If the recording is "private" then require authentication with ldap and give access to owner of the room and those the room have been shared with.
+Access Logic (based on 'Visibility' setting):
+- If the recording is "Public" then no authentication is required
+- If the recording is "Published" and room has an access code then ask for access code
+- If the recording is "Published" and room has no access code then authenticate with ldap credentials
+- If the recording is "Private" then require authentication with ldap and give access to owner of the room and those the room have been shared with.
+- if the recording is "Unpublished" then it is not visible to anyone because BBB will have no meta data file.
 
 
 The greenlight integration is available at: https://github.com/cyriltata/greenlight/tree/gemi-changes

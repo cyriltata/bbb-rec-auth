@@ -127,3 +127,8 @@ button:hover {
 	color: #ccc;
 	opacity: 1;
 }
+.error {
+	color: #dc3545!important;
+	display: none;
+	font-size: 13px;
+}

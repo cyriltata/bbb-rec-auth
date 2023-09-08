@@ -65,26 +65,30 @@ class GLAuth:
         })
 
       else:
-        self.unauthorized(target)
+        self.unauthorized(target, True)
     else:
       form_html = self.login_form(target)
       self.response_ok(form_html)
   
-  def login_form(self, target):
+  def login_form(self, target, display_error = 'none'):
     meeting = GLAuthBBBMeeting(self.config, target, self.recording_path)
     meeting_bbb_id = meeting.get_bbbid();
 
     if not meeting_bbb_id:
-      return ""
+      self.response_ok(self.config.get_html('unpublished'))
 
-    if meeting.has_access_code() and meeting.get_meeting_status() == GLAuthBBBMeeting.ACCESS_PUBLIC:
-      form_html = self.config.get_html('code').replace('TARGET', target)
-    elif meeting.has_access_code() and meeting.get_meeting_status() == GLAuthBBBMeeting.ACCESS_AUTH:
-      form_html = self.config.get_html('code').replace('TARGET', target)
-    elif not meeting.has_access_code() and meeting.get_meeting_status() == GLAuthBBBMeeting.ACCESS_AUTH:
-      form_html = self.config.get_html('login').replace('TARGET', target)
+    meeting_status = meeting.get_meeting_status()
+
+    if meeting.has_access_code() and meeting_status == GLAuthBBBMeeting.ACCESS_PUBLIC:
+      form_html = self.config.get_html('code')
+    elif meeting.has_access_code() and meeting_status == GLAuthBBBMeeting.ACCESS_AUTH:
+      form_html = self.config.get_html('code')
+    elif not meeting.has_access_code() and meeting_status == GLAuthBBBMeeting.ACCESS_AUTH:
+      form_html = self.config.get_html('login')
     else:
-      form_html = self.config.get_html('login').replace('TARGET', target)
+      form_html = self.config.get_html('login')
+
+    form_html = form_html.replace('TARGET', target).replace('ERR_DISPLAY', display_error)
     
     return form_html
 
@@ -97,6 +101,7 @@ class GLAuth:
 
     meeting = GLAuthBBBMeeting(self.config, target, self.recording_path)
     meeting_bbb_id = meeting.get_bbbid();
+
     if not meeting_bbb_id:
       # Recording is not accessible or missing params
       self.auth_msg = 'Recording is not accessible or missing credentials'
@@ -105,19 +110,21 @@ class GLAuth:
     
     # Perform authentication based on the above explained scenario
     auth_string = None
+    meeting_status = meeting.get_meeting_status()
+  
     if self.is_public_meeting(ref_target):
       auth_string = 'PUBAUTH:public'
-    elif meeting.has_access_code() and meeting.get_meeting_status() == GLAuthBBBMeeting.ACCESS_PUBLIC:
+    elif meeting.has_access_code() and meeting_status == GLAuthBBBMeeting.ACCESS_PUBLIC:
       # authenticate only with access code only
       if (self.authenticate_code(form, meeting)):
         auth_string = 'CODEAUTH:' + access_code
 
-    elif meeting.has_access_code() and meeting.get_meeting_status() == GLAuthBBBMeeting.ACCESS_AUTH:
+    elif meeting.has_access_code() and meeting_status == GLAuthBBBMeeting.ACCESS_AUTH:
       # authenticate only with access code only
       if (self.authenticate_code(form, meeting)):
         auth_string = 'CODEAUTH:' + access_code
 
-    elif not meeting.has_access_code() and meeting.get_meeting_status() == GLAuthBBBMeeting.ACCESS_AUTH:
+    elif not meeting.has_access_code() and meeting_status == GLAuthBBBMeeting.ACCESS_AUTH:
       # authenticate only with login only
       if (self.authenticate_ldap(form, meeting, False)):
         auth_string = 'LDAPAUTH:' + user
@@ -130,7 +137,7 @@ class GLAuth:
     if not auth_string:
       return False
 
-    auth_string = auth_string + ':' + target + ':' + meeting.get_meeting_status()
+    auth_string = auth_string + ':' + target + ':' + meeting_status
 
     return self.encrypt(auth_string)
   
@@ -182,15 +189,16 @@ class GLAuth:
   def is_public_meeting(self, target):
     try:
       meeting = GLAuthBBBMeeting(self.config, target, self.recording_path)
-      if not meeting.has_access_code() and meeting.get_meeting_status() == GLAuthBBBMeeting.ACCESS_PUBLIC:
-        return True
+      return meeting.get_meeting_status() == GLAuthBBBMeeting.ACCESS_PUBLIC
+      #if not meeting.has_access_code() and meeting.get_meeting_status() == GLAuthBBBMeeting.ACCESS_PUBLIC:
+      #  return True
     except:
       pass
 
     return False
 
-  def unauthorized(self, target = '/'):
-    form_html = self.login_form(target);
+  def unauthorized(self, target = '/', error = None):
+    form_html = self.login_form(target, ('block' if error else 'none'));
     self.response(401, form_html, {
       'Status': '401 Unauthorized',
     })
