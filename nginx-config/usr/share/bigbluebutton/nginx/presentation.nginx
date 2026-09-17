@@ -42,3 +42,8 @@ location /presentation {
     auth_request /auth;
     error_page 401 = @recerror401;
 }
+
+location /playback/presentation/2.0/playback.html {
+    return 301 /playback/presentation/2.3/$arg_meetingId?$query_string;
+}
+
